@@ -3,66 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Utaten Manager</title>
+    <title>🌸 Utaten Library 🌸</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #fdfdfd; --card: #ffffff; --text: #4a4a4a; --accent: #81ecec; --shadow: 0 8px 30px rgba(0,0,0,0.04); }
-        body { background: var(--bg); font-family: 'Noto Sans SC', sans-serif; margin: 0; padding: 40px 20px; color: var(--text); }
-        .container { max-width: 1000px; margin: 0 auto; }
+        :root {
+            --pink-light: #fff0f6;
+            --pink-main: #ff85c0;
+            --blue-soft: #e6f7ff;
+            --glass: rgba(255, 255, 255, 0.7);
+        }
+
+        body {
+            margin: 0;
+            background: url('https://api.dujin.org/bing/1920.php') no-repeat center center fixed; /* 自动背景，你可以换成二次元图 */
+            background-size: cover;
+            font-family: 'Noto Sans JP', sans-serif;
+            color: #555;
+        }
+
+        /* 毛玻璃容器 */
+        .app-wrapper {
+            min-height: 100vh;
+            background: rgba(255, 240, 246, 0.6); /* 淡淡的粉色滤镜 */
+            backdrop-filter: blur(8px);
+            padding: 40px 20px;
+        }
+
+        .container { max-width: 900px; margin: 0 auto; }
+
+        header { text-align: center; margin-bottom: 30px; }
+        h1 { font-family: 'ZCOOL KuaiLe', cursive; color: var(--pink-main); font-size: 2.5rem; text-shadow: 2px 2px white; }
+
+        /* 搜索和配置区 */
+        .toolbar {
+            background: var(--glass);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(255, 133, 192, 0.1);
+            margin-bottom: 30px;
+            display: flex; gap: 10px; flex-wrap: wrap;
+        }
+
+        input {
+            padding: 10px 15px;
+            border: 2px solid var(--pink-light);
+            border-radius: 12px;
+            outline: none;
+            transition: 0.3s;
+        }
+        input:focus { border-color: var(--pink-main); box-shadow: 0 0 8px rgba(255, 133, 192, 0.3); }
+        .search-input { flex-grow: 2; font-size: 1.1rem; }
+
+        /* 列表卡片 */
+        .song-list { display: grid; gap: 15px; }
+        .song-item {
+            background: var(--glass);
+            padding: 15px 25px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.3s;
+            border-left: 5px solid var(--pink-main);
+        }
+        .song-item:hover { transform: translateX(10px); background: white; }
+
+        .song-info { flex-grow: 1; cursor: pointer; }
+        .song-jp { font-weight: bold; font-size: 1.1rem; color: #333; display: block; }
+        .song-cn { font-size: 0.85rem; color: #888; }
+
+        /* 按钮样式 */
+        .btn {
+            border: none; padding: 10px 20px; border-radius: 12px;
+            cursor: pointer; font-weight: bold; transition: 0.3s;
+        }
+        .btn-pink { background: var(--pink-main); color: white; }
+        .btn-del { background: #ff7875; color: white; padding: 5px 10px; }
         
-        /* 顶部导航 */
-        nav { text-align: right; margin-bottom: 20px; }
-        button { border: none; background: var(--accent); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
-        button:hover { opacity: 0.8; }
-
-        /* 列表网格 */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 30px; }
-        .card { background: var(--card); border-radius: 15px; box-shadow: var(--shadow); position: relative; overflow: hidden; transition: 0.4s; }
-        .card:hover { transform: translateY(-5px); }
-        .img-box { width: 100%; aspect-ratio: 1; overflow: hidden; }
-        .img-box img { width: 100%; height: 100%; object-fit: cover; }
-        .info { padding: 15px; text-align: center; }
-        .jp { display: block; font-weight: 500; font-size: 0.95rem; }
-        .cn { display: block; font-size: 0.8rem; color: #999; }
-
-        /* 管理面板 */
-        .admin-panel { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); margin-bottom: 40px; }
-        .input-group { margin-bottom: 10px; }
-        input { width: 100%; padding: 10px; border: 1px solid #eee; border-radius: 5px; box-sizing: border-box; }
-        .delete-btn { position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.5); color: white; border-radius: 50%; width: 25px; height: 25px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        /* 弹窗样式 */
+        .modal {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; padding: 30px; border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2); z-index: 100;
+            width: 90%; max-width: 400px;
+        }
+        .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.3); z-index: 90; }
 
         [v-cloak] { display: none; }
     </style>
 </head>
 <body>
 
-<div id="app" class="container" v-cloak>
-    <nav>
-        <button @click="adminMode = !adminMode">{{ adminMode ? '退出管理' : '管理模式' }}</button>
-        <button v-if="adminMode" @click="exportData" style="margin-left:10px; background:#fab1a0">导出 JSON</button>
-    </nav>
+<div id="app" class="app-wrapper" v-cloak>
+    <div class="container">
+        <header>
+            <h1>🌸 歌のリスト 🌸</h1>
+            <p>输入 GitHub Token 开启同步模式</p>
+            <input v-model="config.token" type="password" placeholder="GitHub Token" style="width: 200px; font-size: 0.8rem;">
+        </header>
 
-    <div v-if="adminMode" class="admin-panel">
-        <h3>添加新歌曲</h3>
-        <div class="input-group"><input v-model="newSong.jp" placeholder="日语名"></div>
-        <div class="input-group"><input v-model="newSong.cn" placeholder="中文名"></div>
-        <div class="input-group"><input v-model="newSong.img" placeholder="曲绘链接"></div>
-        <div class="input-group"><input v-model="newSong.url" placeholder="Utaten 链接"></div>
-        <button @click="addSong" style="width:100%">确认添加</button>
+        <div class="toolbar">
+            <input v-model="searchText" class="search-input" placeholder="🔍 搜索歌名或歌词...">
+            <button @click="showAddModal = true" class="btn btn-pink">✨ 添加新歌</button>
+            <button @click="pushToGithub" class="btn" style="background: #95defb;">☁️ 同步到云端</button>
+        </div>
+
+        <div class="song-list">
+            <div v-for="(song, index) in filteredSongs" :key="index" class="song-item">
+                <div class="song-info" @click="window.open(song.url, '_blank')">
+                    <span class="song-jp">{{ song.jp }}</span>
+                    <span class="song-cn">{{ song.cn }}</span>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button @click="editSong(index)" class="btn" style="background:#d9f7be">改</button>
+                    <button @click="removeSong(index)" class="btn btn-del">删</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="grid">
-        <div v-for="(song, index) in songs" :key="index" class="card">
-            <div v-if="adminMode" class="delete-btn" @click="removeSong(index)">✕</div>
-            <a :href="song.url" target="_blank" style="text-decoration: none; color: inherit;">
-                <div class="img-box"><img :src="song.img" @error="handleImgError"></div>
-                <div class="info">
-                    <span class="jp">{{ song.jp }}</span>
-                    <span class="cn">{{ song.cn }}</span>
-                </div>
-            </a>
-        </div>
+    <div v-if="showAddModal" class="overlay" @click="showAddModal = false"></div>
+    <div v-if="showAddModal" class="modal">
+        <h3>{{ editingIndex === null ? '添加新曲目' : '修改曲目' }}</h3>
+        <input v-model="tempSong.jp" placeholder="日语歌名" style="display:block; width:100%; margin-bottom:10px;">
+        <input v-model="tempSong.cn" placeholder="中文翻译" style="display:block; width:100%; margin-bottom:10px;">
+        <input v-model="tempSong.url" placeholder="Utaten URL" style="display:block; width:100%; margin-bottom:15px;">
+        <button @click="saveSong" class="btn btn-pink" style="width:100%">确认保存</button>
     </div>
 </div>
 
@@ -71,48 +138,83 @@
     createApp({
         data() {
             return {
-                adminMode: false,
                 songs: [],
-                newSong: { jp: '', cn: '', img: '', url: '' }
+                searchText: '',
+                showAddModal: false,
+                editingIndex: null,
+                tempSong: { jp: '', cn: '', url: '' },
+                config: {
+                    token: localStorage.getItem('gh_token') || '',
+                    owner: '你的用户名', // 🔴 修改这里
+                    repo: '仓库名',     // 🔴 修改这里
+                    path: 'data.json'
+                }
             }
         },
+        computed: {
+            filteredSongs() {
+                return this.songs.filter(s => 
+                    s.jp.toLowerCase().includes(this.searchText.toLowerCase()) || 
+                    s.cn.toLowerCase().includes(this.searchText.toLowerCase())
+                );
+            }
+        },
+        watch: {
+            'config.token'(val) { localStorage.setItem('gh_token', val); }
+        },
         mounted() {
-            // 尝试从 data.json 加载，如果失败则尝试 localStorage
-            fetch('./data.json')
-                .then(res => res.json())
-                .then(data => { this.songs = data; })
-                .catch(() => {
-                    const localData = localStorage.getItem('my-songs');
-                    if (localData) this.songs = JSON.parse(localData);
-                });
+            fetch('./data.json?t=' + Date.now()).then(r => r.json()).then(d => this.songs = d);
         },
         methods: {
-            addSong() {
-                if(!this.newSong.jp || !this.newSong.url) return alert('请填写完整信息');
-                this.songs.unshift({...this.newSong});
-                this.saveLocal();
-                this.newSong = { jp: '', cn: '', img: '', url: '' };
+            saveSong() {
+                if (this.editingIndex !== null) {
+                    this.songs[this.editingIndex] = { ...this.tempSong };
+                } else {
+                    this.songs.unshift({ ...this.tempSong });
+                }
+                this.closeModal();
+            },
+            editSong(index) {
+                this.editingIndex = index;
+                this.tempSong = { ...this.songs[index] };
+                this.showAddModal = true;
             },
             removeSong(index) {
-                if(confirm('确定删除吗？')) {
-                    this.songs.splice(index, 1);
-                    this.saveLocal();
+                if(confirm('确定要丢掉这首歌吗？')) this.songs.splice(index, 1);
+            },
+            closeModal() {
+                this.showAddModal = false;
+                this.editingIndex = null;
+                this.tempSong = { jp: '', cn: '', url: '' };
+            },
+            async pushToGithub() {
+                if (!this.config.token) return alert('请先输入 Token');
+                const url = `https://api.github.com/repos/${this.config.owner}/${this.config.repo}/contents/${this.config.path}`;
+                
+                try {
+                    // 1. 获取当前文件的 SHA
+                    const res = await fetch(url, { headers: { Authorization: `token ${this.config.token}` } });
+                    const fileData = await res.json();
+                    
+                    // 2. 提交更新
+                    const updateRes = await fetch(url, {
+                        method: 'PUT',
+                        headers: { Authorization: `token ${this.config.token}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message: "Update songs library 🌸",
+                            content: btoa(unescape(encodeURIComponent(JSON.stringify(this.songs, null, 2)))),
+                            sha: fileData.sha
+                        })
+                    });
+                    
+                    if(updateRes.ok) alert('同步成功！刷新页面即可看到新数据。');
+                    else alert('同步失败，请检查 Token 或权限。');
+                } catch (e) {
+                    alert('出错啦: ' + e);
                 }
-            },
-            saveLocal() {
-                localStorage.setItem('my-songs', JSON.stringify(this.songs));
-            },
-            exportData() {
-                const dataStr = JSON.stringify(this.songs, null, 2);
-                console.log(dataStr);
-                alert('JSON 数据已打印在控制台，请复制并覆盖 data.json 文件');
-            },
-            handleImgError(e) {
-                e.target.src = 'https://via.placeholder.com/200?text=No+Image';
             }
         }
     }).mount('#app');
 </script>
-
 </body>
 </html>
