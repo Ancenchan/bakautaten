@@ -138,16 +138,40 @@
         </div>
     </div>
 
-    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/5 backdrop-blur-sm">
-        <div class="relative bg-white/90 glass w-full max-w-[300px] rounded-[2rem] p-8 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300">
-            <div class="space-y-4">
-                <input v-model="tempSong.jp" placeholder="日文曲名" class="w-full px-4 py-3 bg-white/50 border border-pk-50 rounded-xl text-xs outline-none">
-                <input v-model="tempSong.cn" placeholder="中文翻译" class="w-full px-4 py-3 bg-white/50 border border-pk-50 rounded-xl text-xs outline-none">
-                <input v-model="tempSong.url" placeholder="Utaten URL" class="w-full px-4 py-3 bg-white/50 border border-pk-50 rounded-xl text-xs outline-none">
-                <button @click="saveSong" class="w-full py-3 bg-pk-300 text-white rounded-xl text-xs font-bold shadow-md hover:bg-pk-400 transition-all">保存并自动同步</button>
+<transition name="modal">
+    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-6">
+        <div class="absolute inset-0 bg-pk-50/20 backdrop-blur-sm" @click="closeModal"></div>
+        
+        <div class="relative bg-white/90 glass w-full max-w-[300px] rounded-[2.5rem] p-8 shadow-2xl animate-in fade-in zoom-in duration-300">
+            <button @click="closeModal" class="absolute top-4 right-6 text-pk-200 hover:text-pk-400 text-xl font-light transition-colors">
+                ✕
+            </button>
+
+            <div class="space-y-4 pt-2">
+                <h3 class="text-xs font-bold tracking-[0.2em] text-pk-300 mb-2 text-center uppercase">编辑曲目</h3>
+                
+                <input v-model="tempSong.jp" placeholder="日文曲名" 
+                       class="w-full px-4 py-3 bg-white/50 border border-pk-50 rounded-2xl text-xs outline-none focus:ring-2 focus:ring-pk-100">
+                
+                <input v-model="tempSong.cn" placeholder="中文翻译" 
+                       class="w-full px-4 py-3 bg-white/50 border border-pk-50 rounded-2xl text-xs outline-none focus:ring-2 focus:ring-pk-100">
+                
+                <input v-model="tempSong.url" placeholder="Utaten URL" 
+                       class="w-full px-4 py-3 bg-white/50 border border-pk-50 rounded-2xl text-xs outline-none focus:ring-2 focus:ring-pk-100">
+                
+                <div class="flex gap-2 pt-2">
+                    <button @click="saveSong" class="flex-1 py-3 bg-pk-300 text-white rounded-xl text-xs font-bold shadow-md hover:bg-pk-400 transition-all">
+                        保存并同步
+                    </button>
+                    <button @click="closeModal" class="px-4 py-3 bg-slate-100 text-slate-400 rounded-xl text-xs font-bold hover:bg-slate-200 transition-all">
+                        取消
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+</transition>
+
 
     <footer class="mt-auto py-6 text-center text-[8px] text-pk-200 tracking-[0.3em] uppercase opacity-50">
         POWERED BY FUWARI • {{ isAuthorized ? 'ADMIN MODE' : 'VISITOR' }}
