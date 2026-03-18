@@ -76,23 +76,25 @@
     </header>
 
     <main class="container-mini pb-20">
-        <div class="flex items-center gap-2 mb-8">
-            <div class="relative flex-grow">
-                <input v-model="searchText" placeholder="搜索心中所属的乐章..." 
-               class="w-full px-5 py-2 glass rounded-full focus:outline-none focus:ring-1 focus:ring-pk-100 text-sm placeholder:text-pk-200 transition-all shadow-sm">
+        <div class="flex items-center gap-2 mb-8 container-mini">
+    <div class="relative flex-grow">
+        <input v-model="searchText" placeholder="搜索心中所属的乐章..." 
+               class="w-full px-5 py-2.5 glass rounded-full focus:outline-none focus:ring-1 focus:ring-pk-100 text-sm placeholder:text-pk-200 transition-all shadow-sm">
         
-               <button @click="shuffleSongs" title="随机洗牌" 
-                class="absolute right-4 top-1/2 -translate-y-1/2 group">
-                <img src="https://api.iconify.design/fluent:bx-shuffle.svg?color=%23fda4af" 
-                 class="w-5 h-5 opacity-70 group-hover:opacity-100 group-hover:rotate-180 transition-all duration-500 ease-out">
-                </button>
-            </div>
+        <button @click="shuffleSongs" title="随机排列" 
+                class="absolute right-4 top-1/2 -translate-y-1/2 group flex items-center justify-center">
+            <span class="text-lg opacity-60 group-hover:opacity-100 group-hover:rotate-[360deg] transition-all duration-700 ease-in-out inline-block">
+                🔄
+            </span>
+        </button>
+    </div>
     
-            <button v-if="isAuthorized" @click="openModal()" 
-            class="w-10 h-9 flex items-center justify-center bg-pk-300 text-white rounded-2xl hover:bg-pk-400 transition-all shadow-md shadow-pk-200/50">
+    <button v-if="isAuthorized" @click="openModal()" 
+            class="w-10 h-10 flex items-center justify-center bg-pk-300 text-white rounded-full hover:bg-pk-400 transition-all shadow-md shadow-pk-200/50 text-xl font-light">
         +
-            </button>
-        </div>
+    </button>
+</div>
+
 
       <div class="space-y-3">
     <transition-group name="list" tag="div" class="space-y-3">
