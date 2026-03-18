@@ -3,87 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Utaten Playlist</title>
+    <title>Utaten Manager</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #fdfdfd;
-            --card: #ffffff;
-            --text: #4a4a4a;
-            --sub: #9b9b9b;
-            --shadow: 0 8px 30px rgba(0,0,0,0.04);
-        }
-        body {
-            background: var(--bg);
-            font-family: 'Noto Sans SC', 'Noto Sans JP', sans-serif;
-            margin: 0; padding: 50px 20px;
-        }
-        .container { max-width: 1200px; margin: 0 auto; }
-        header { text-align: center; margin-bottom: 60px; }
-        h1 { font-weight: 300; color: var(--text); letter-spacing: 4px; }
+        :root { --bg: #fdfdfd; --card: #ffffff; --text: #4a4a4a; --accent: #81ecec; --shadow: 0 8px 30px rgba(0,0,0,0.04); }
+        body { background: var(--bg); font-family: 'Noto Sans SC', sans-serif; margin: 0; padding: 40px 20px; color: var(--text); }
+        .container { max-width: 1000px; margin: 0 auto; }
         
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 40px;
-        }
-        .card {
-            background: var(--card);
-            border-radius: 20px;
-            box-shadow: var(--shadow);
-            text-decoration: none;
-            transition: all 0.4s ease;
-            overflow: hidden;
-            display: flex; flex-direction: column;
-        }
-        .card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 45px rgba(0,0,0,0.08);
-        }
-        .img-box { width: 100%; aspect-ratio: 1; overflow: hidden; background: #f0f0f0; }
-        .img-box img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
-        .card:hover img { transform: scale(1.1); }
-        
-        .info { padding: 20px; text-align: center; }
-        .jp { display: block; font-size: 1rem; color: var(--text); margin-bottom: 5px; font-weight: 500; }
-        .cn { display: block; font-size: 0.8rem; color: var(--sub); }
-        
-        /* 加载动画 */
+        /* 顶部导航 */
+        nav { text-align: right; margin-bottom: 20px; }
+        button { border: none; background: var(--accent); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        button:hover { opacity: 0.8; }
+
+        /* 列表网格 */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 30px; }
+        .card { background: var(--card); border-radius: 15px; box-shadow: var(--shadow); position: relative; overflow: hidden; transition: 0.4s; }
+        .card:hover { transform: translateY(-5px); }
+        .img-box { width: 100%; aspect-ratio: 1; overflow: hidden; }
+        .img-box img { width: 100%; height: 100%; object-fit: cover; }
+        .info { padding: 15px; text-align: center; }
+        .jp { display: block; font-weight: 500; font-size: 0.95rem; }
+        .cn { display: block; font-size: 0.8rem; color: #999; }
+
+        /* 管理面板 */
+        .admin-panel { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); margin-bottom: 40px; }
+        .input-group { margin-bottom: 10px; }
+        input { width: 100%; padding: 10px; border: 1px solid #eee; border-radius: 5px; box-sizing: border-box; }
+        .delete-btn { position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.5); color: white; border-radius: 50%; width: 25px; height: 25px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+
         [v-cloak] { display: none; }
     </style>
 </head>
 <body>
 
 <div id="app" class="container" v-cloak>
-    <header>
-        <h1>UTA LIST</h1>
-        <p style="color: #bbb;">{{ songs.length }} Songs Collection</p>
-    </header>
+    <nav>
+        <button @click="adminMode = !adminMode">{{ adminMode ? '退出管理' : '管理模式' }}</button>
+        <button v-if="adminMode" @click="exportData" style="margin-left:10px; background:#fab1a0">导出 JSON</button>
+    </nav>
+
+    <div v-if="adminMode" class="admin-panel">
+        <h3>添加新歌曲</h3>
+        <div class="input-group"><input v-model="newSong.jp" placeholder="日语名"></div>
+        <div class="input-group"><input v-model="newSong.cn" placeholder="中文名"></div>
+        <div class="input-group"><input v-model="newSong.img" placeholder="曲绘链接"></div>
+        <div class="input-group"><input v-model="newSong.url" placeholder="Utaten 链接"></div>
+        <button @click="addSong" style="width:100%">确认添加</button>
+    </div>
 
     <div class="grid">
-        <a v-for="song in songs" :href="song.url" target="_blank" class="card">
-            <div class="img-box">
-                <img :src="song.img" loading="lazy">
-            </div>
-            <div class="info">
-                <span class="jp">{{ song.jp }}</span>
-                <span class="cn">{{ song.cn }}</span>
-            </div>
-        </a>
+        <div v-for="(song, index) in songs" :key="index" class="card">
+            <div v-if="adminMode" class="delete-btn" @click="removeSong(index)">✕</div>
+            <a :href="song.url" target="_blank" style="text-decoration: none; color: inherit;">
+                <div class="img-box"><img :src="song.img" @error="handleImgError"></div>
+                <div class="info">
+                    <span class="jp">{{ song.jp }}</span>
+                    <span class="cn">{{ song.cn }}</span>
+                </div>
+            </a>
+        </div>
     </div>
 </div>
 
 <script>
     const { createApp } = Vue;
     createApp({
-        data() { return { songs: [] } },
+        data() {
+            return {
+                adminMode: false,
+                songs: [],
+                newSong: { jp: '', cn: '', img: '', url: '' }
+            }
+        },
         mounted() {
-            // 获取数据
+            // 尝试从 data.json 加载，如果失败则尝试 localStorage
             fetch('./data.json')
                 .then(res => res.json())
-                .then(data => this.songs = data)
-                .catch(err => console.error("数据加载失败:", err));
+                .then(data => { this.songs = data; })
+                .catch(() => {
+                    const localData = localStorage.getItem('my-songs');
+                    if (localData) this.songs = JSON.parse(localData);
+                });
+        },
+        methods: {
+            addSong() {
+                if(!this.newSong.jp || !this.newSong.url) return alert('请填写完整信息');
+                this.songs.unshift({...this.newSong});
+                this.saveLocal();
+                this.newSong = { jp: '', cn: '', img: '', url: '' };
+            },
+            removeSong(index) {
+                if(confirm('确定删除吗？')) {
+                    this.songs.splice(index, 1);
+                    this.saveLocal();
+                }
+            },
+            saveLocal() {
+                localStorage.setItem('my-songs', JSON.stringify(this.songs));
+            },
+            exportData() {
+                const dataStr = JSON.stringify(this.songs, null, 2);
+                console.log(dataStr);
+                alert('JSON 数据已打印在控制台，请复制并覆盖 data.json 文件');
+            },
+            handleImgError(e) {
+                e.target.src = 'https://via.placeholder.com/200?text=No+Image';
+            }
         }
     }).mount('#app');
 </script>
