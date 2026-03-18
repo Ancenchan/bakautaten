@@ -3,133 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌸 Utaten Library 🌸</title>
+    <title>Utaten Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --pink-light: #fff0f6;
-            --pink-main: #ff85c0;
-            --blue-soft: #e6f7ff;
-            --glass: rgba(255, 255, 255, 0.7);
-        }
-
-        body {
-            margin: 0;
-            background: url('https://api.dujin.org/bing/1920.php') no-repeat center center fixed; /* 自动背景，你可以换成二次元图 */
-            background-size: cover;
-            font-family: 'Noto Sans JP', sans-serif;
-            color: #555;
-        }
-
-        /* 毛玻璃容器 */
-        .app-wrapper {
-            min-height: 100vh;
-            background: rgba(255, 240, 246, 0.6); /* 淡淡的粉色滤镜 */
-            backdrop-filter: blur(8px);
-            padding: 40px 20px;
-        }
-
-        .container { max-width: 900px; margin: 0 auto; }
-
-        header { text-align: center; margin-bottom: 30px; }
-        h1 { font-family: 'ZCOOL KuaiLe', cursive; color: var(--pink-main); font-size: 2.5rem; text-shadow: 2px 2px white; }
-
-        /* 搜索和配置区 */
-        .toolbar {
-            background: var(--glass);
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(255, 133, 192, 0.1);
-            margin-bottom: 30px;
-            display: flex; gap: 10px; flex-wrap: wrap;
-        }
-
-        input {
-            padding: 10px 15px;
-            border: 2px solid var(--pink-light);
-            border-radius: 12px;
-            outline: none;
-            transition: 0.3s;
-        }
-        input:focus { border-color: var(--pink-main); box-shadow: 0 0 8px rgba(255, 133, 192, 0.3); }
-        .search-input { flex-grow: 2; font-size: 1.1rem; }
-
-        /* 列表卡片 */
-        .song-list { display: grid; gap: 15px; }
-        .song-item {
-            background: var(--glass);
-            padding: 15px 25px;
-            border-radius: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: 0.3s;
-            border-left: 5px solid var(--pink-main);
-        }
-        .song-item:hover { transform: translateX(10px); background: white; }
-
-        .song-info { flex-grow: 1; cursor: pointer; }
-        .song-jp { font-weight: bold; font-size: 1.1rem; color: #333; display: block; }
-        .song-cn { font-size: 0.85rem; color: #888; }
-
-        /* 按钮样式 */
-        .btn {
-            border: none; padding: 10px 20px; border-radius: 12px;
-            cursor: pointer; font-weight: bold; transition: 0.3s;
-        }
-        .btn-pink { background: var(--pink-main); color: white; }
-        .btn-del { background: #ff7875; color: white; padding: 5px 10px; }
-        
-        /* 弹窗样式 */
-        .modal {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: white; padding: 30px; border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2); z-index: 100;
-            width: 90%; max-width: 400px;
-        }
-        .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.3); z-index: 90; }
-
+        body { font-family: 'Inter', -apple-system, sans-serif; background-color: #fafafa; }
         [v-cloak] { display: none; }
+        /* 隐藏滚动条但保留功能 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     </style>
 </head>
-<body>
+<body class="text-slate-900">
 
-<div id="app" class="app-wrapper" v-cloak>
-    <div class="container">
-        <header>
-            <h1>🌸 歌のリスト 🌸</h1>
-            <p>输入 GitHub Token 开启同步模式</p>
-            <input v-model="config.token" type="password" placeholder="GitHub Token" style="width: 200px; font-size: 0.8rem;">
-        </header>
+<div id="app" v-cloak class="min-h-screen pb-20">
+    <nav class="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-200">
+        <div class="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
+            <h1 class="text-xl font-semibold tracking-tight text-rose-500">Music.Library</h1>
+            <div class="flex items-center gap-4">
+                <input v-model="config.token" type="password" placeholder="GitHub Token" 
+                       class="text-xs border border-slate-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-rose-100 transition-all w-32 md:w-48">
+                <button @click="pushToGithub" class="bg-slate-900 text-white text-xs font-medium px-4 py-2 rounded-md hover:bg-slate-800 transition-all shadow-sm">
+                    部署同步
+                </button>
+            </div>
+        </div>
+    </nav>
 
-        <div class="toolbar">
-            <input v-model="searchText" class="search-input" placeholder="🔍 搜索歌名或歌词...">
-            <button @click="showAddModal = true" class="btn btn-pink">✨ 添加新歌</button>
-            <button @click="pushToGithub" class="btn" style="background: #95defb;">☁️ 同步到云端</button>
+    <main class="max-w-4xl mx-auto px-6 mt-12">
+        <div class="flex flex-col md:flex-row gap-4 mb-10">
+            <div class="relative flex-grow">
+                <span class="absolute left-3 top-2.5 text-slate-400">🔍</span>
+                <input v-model="searchText" placeholder="搜索歌曲或艺术家..." 
+                       class="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-100 transition-all shadow-sm">
+            </div>
+            <button @click="openModal()" class="inline-flex items-center justify-center rounded-lg bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 hover:bg-rose-100 transition-colors border border-rose-200">
+                + 添加新曲目
+            </button>
         </div>
 
-        <div class="song-list">
-            <div v-for="(song, index) in filteredSongs" :key="index" class="song-item">
-                <div class="song-info" @click="window.open(song.url, '_blank')">
-                    <span class="song-jp">{{ song.jp }}</span>
-                    <span class="song-cn">{{ song.cn }}</span>
+        <div class="grid gap-3">
+            <div v-for="(song, index) in filteredSongs" :key="index" 
+                 class="group flex items-center justify-between p-4 bg-white border border-slate-100 rounded-xl hover:border-rose-200 hover:shadow-md transition-all duration-300">
+                <div class="flex-grow cursor-pointer" @click="window.open(song.url, '_blank')">
+                    <p class="font-medium text-[15px] group-hover:text-rose-500 transition-colors">{{ song.jp }}</p>
+                    <p class="text-xs text-slate-400 mt-1">{{ song.cn || '暂无译名' }}</p>
                 </div>
-                <div style="display: flex; gap: 10px;">
-                    <button @click="editSong(index)" class="btn" style="background:#d9f7be">改</button>
-                    <button @click="removeSong(index)" class="btn btn-del">删</button>
+                <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button @click="openModal(index)" class="text-xs text-slate-500 hover:text-slate-800 px-2 py-1">编辑</button>
+                    <button @click="removeSong(index)" class="text-xs text-rose-400 hover:text-rose-600 px-2 py-1">删除</button>
+                </div>
+            </div>
+            <div v-if="filteredSongs.length === 0" class="py-20 text-center text-slate-400 border-2 border-dashed border-slate-100 rounded-2xl">
+                还没有找到相关的曲目哦 🎵
+            </div>
+        </div>
+    </main>
+
+    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/20 backdrop-blur-[2px]">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-100 p-6 animate-in fade-in zoom-in duration-200">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-semibold tracking-tight">{{ editingIndex !== null ? '修改曲目' : '添加新曲目' }}</h3>
+                <button @click="closeModal" class="text-slate-400 hover:text-slate-600 text-xl">×</button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-medium text-slate-500 mb-1 block">日语歌名</label>
+                    <input v-model="tempSong.jp" class="w-full px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-100">
+                </div>
+                <div>
+                    <label class="text-xs font-medium text-slate-500 mb-1 block">中文翻译 (可选)</label>
+                    <input v-model="tempSong.cn" class="w-full px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-100">
+                </div>
+                <div>
+                    <label class="text-xs font-medium text-slate-500 mb-1 block">Utaten 链接</label>
+                    <input v-model="tempSong.url" class="w-full px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-100">
+                </div>
+                <div class="pt-4 flex gap-3">
+                    <button @click="closeModal" class="flex-1 px-4 py-2 border border-slate-200 rounded-md text-sm font-medium hover:bg-slate-50 transition-colors">取消</button>
+                    <button @click="saveSong" class="flex-1 px-4 py-2 bg-slate-900 text-white rounded-md text-sm font-medium hover:bg-slate-800 shadow-sm">确认保存</button>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div v-if="showAddModal" class="overlay" @click="showAddModal = false"></div>
-    <div v-if="showAddModal" class="modal">
-        <h3>{{ editingIndex === null ? '添加新曲目' : '修改曲目' }}</h3>
-        <input v-model="tempSong.jp" placeholder="日语歌名" style="display:block; width:100%; margin-bottom:10px;">
-        <input v-model="tempSong.cn" placeholder="中文翻译" style="display:block; width:100%; margin-bottom:10px;">
-        <input v-model="tempSong.url" placeholder="Utaten URL" style="display:block; width:100%; margin-bottom:15px;">
-        <button @click="saveSong" class="btn btn-pink" style="width:100%">确认保存</button>
     </div>
 </div>
 
@@ -140,77 +96,70 @@
             return {
                 songs: [],
                 searchText: '',
-                showAddModal: false,
+                showModal: false,
                 editingIndex: null,
                 tempSong: { jp: '', cn: '', url: '' },
                 config: {
                     token: localStorage.getItem('gh_token') || '',
-                    owner: '你的用户名', // 🔴 修改这里
-                    repo: '仓库名',     // 🔴 修改这里
+                    owner: 'YOUR_USERNAME', // 🔴 必须修改：你的 GitHub 用户名
+                    repo: 'YOUR_REPO',       // 🔴 必须修改：你的仓库名
                     path: 'data.json'
                 }
             }
         },
         computed: {
             filteredSongs() {
-                return this.songs.filter(s => 
-                    s.jp.toLowerCase().includes(this.searchText.toLowerCase()) || 
-                    s.cn.toLowerCase().includes(this.searchText.toLowerCase())
-                );
+                const search = this.searchText.toLowerCase();
+                return this.songs.filter(s => s.jp.toLowerCase().includes(search) || (s.cn && s.cn.toLowerCase().includes(search)));
             }
         },
         watch: {
-            'config.token'(val) { localStorage.setItem('gh_token', val); }
+            'config.token'(v) { localStorage.setItem('gh_token', v); }
         },
         mounted() {
-            fetch('./data.json?t=' + Date.now()).then(r => r.json()).then(d => this.songs = d);
+            this.fetchData();
         },
         methods: {
+            async fetchData() {
+                try {
+                    const r = await fetch(`./data.json?t=${Date.now()}`);
+                    this.songs = await r.json();
+                } catch (e) { console.warn("未找到 data.json，请先同步数据。"); }
+            },
+            openModal(index = null) {
+                this.editingIndex = index;
+                this.tempSong = index !== null ? { ...this.songs[index] } : { jp: '', cn: '', url: '' };
+                this.showModal = true;
+            },
             saveSong() {
-                if (this.editingIndex !== null) {
-                    this.songs[this.editingIndex] = { ...this.tempSong };
-                } else {
-                    this.songs.unshift({ ...this.tempSong });
-                }
+                if (!this.tempSong.jp || !this.tempSong.url) return alert("请至少填写歌名和链接哦");
+                if (this.editingIndex !== null) this.songs[this.editingIndex] = { ...this.tempSong };
+                else this.songs.unshift({ ...this.tempSong });
                 this.closeModal();
             },
-            editSong(index) {
-                this.editingIndex = index;
-                this.tempSong = { ...this.songs[index] };
-                this.showAddModal = true;
-            },
             removeSong(index) {
-                if(confirm('确定要丢掉这首歌吗？')) this.songs.splice(index, 1);
+                if(confirm('确定要删除这首曲目吗？')) this.songs.splice(index, 1);
             },
-            closeModal() {
-                this.showAddModal = false;
-                this.editingIndex = null;
-                this.tempSong = { jp: '', cn: '', url: '' };
-            },
+            closeModal() { this.showModal = false; },
             async pushToGithub() {
-                if (!this.config.token) return alert('请先输入 Token');
+                if (!this.config.token || this.config.owner === 'YOUR_USERNAME') return alert('请先输入正确的 Token 并配置代码中的用户名/仓库名');
                 const url = `https://api.github.com/repos/${this.config.owner}/${this.config.repo}/contents/${this.config.path}`;
-                
                 try {
-                    // 1. 获取当前文件的 SHA
                     const res = await fetch(url, { headers: { Authorization: `token ${this.config.token}` } });
                     const fileData = await res.json();
+                    const sha = fileData.sha;
+                    const content = btoa(unescape(encodeURIComponent(JSON.stringify(this.songs, null, 2))));
                     
-                    // 2. 提交更新
-                    const updateRes = await fetch(url, {
+                    const update = await fetch(url, {
                         method: 'PUT',
-                        headers: { Authorization: `token ${this.config.token}`, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            message: "Update songs library 🌸",
-                            content: btoa(unescape(encodeURIComponent(JSON.stringify(this.songs, null, 2)))),
-                            sha: fileData.sha
-                        })
+                        headers: { Authorization: `token ${this.config.token}` },
+                        body: JSON.stringify({ message: "Update 🌸", content, sha })
                     });
                     
-                    if(updateRes.ok) alert('同步成功！刷新页面即可看到新数据。');
-                    else alert('同步失败，请检查 Token 或权限。');
+                    if(update.ok) alert('同步成功！GitHub 可能需要几十秒来刷新 Pages。');
+                    else alert('同步失败，请检查 Token 权限。');
                 } catch (e) {
-                    alert('出错啦: ' + e);
+                    alert('网络错误或文件不存在，请确保仓库已有 data.json');
                 }
             }
         }
