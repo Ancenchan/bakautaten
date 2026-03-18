@@ -94,23 +94,34 @@
             </button>
         </div>
 
-        <div class="space-y-3">
-            <transition-group name="list">
-                <div v-for="(song, index) in filteredSongs" :key="song.url" 
-                     class="group glass rounded-fuwari flex items-center justify-between hover:bg-white/50 transition-all duration-300 shadow-sm overflow-hidden">
+      <div class="space-y-3">
+    <transition-group name="list" tag="div" class="space-y-3">
+        <div v-for="song in filteredSongs" :key="song.url" 
+             class="group glass rounded-fuwari flex items-center justify-between hover:bg-white/50 transition-all duration-300 shadow-sm overflow-hidden border border-white/20">
             
-                    <a :href="song.url" target="_blank" class="flex-grow p-4 btn-click">
-                        <p class="text-sm font-medium text-slate-700 tracking-tight">{{ song.jp }}</p>
-                        <p class="text-[10px] text-pk-300 mt-1 font-light tracking-widest uppercase">{{ song.cn || 'Original' }}</p>
-                    </a>
-            
-                    <div v-if="isAuthorized" class="flex gap-4 pr-6">
-                        <button @click.stop="openModal(index)" class="text-[10px] text-pk-200 hover:text-pk-400 font-bold transition-colors">改</button>
-                        <button @click.stop="removeSong(index)" class="text-[10px] text-red-200 hover:text-red-400 font-bold transition-colors">删</button>
-                    </div>
+            <a :href="song.url" 
+               target="_blank" 
+               rel="noopener noreferrer"
+               class="flex-grow p-4 btn-click no-underline">
+                <div class="flex flex-col">
+                    <p class="text-sm font-medium text-slate-700 tracking-tight leading-tight">
+                        {{ song.jp }}
+                    </p>
+                    <p class="text-[10px] text-pk-300 mt-1.5 font-light tracking-widest uppercase opacity-80">
+                        {{ song.cn || 'Original' }}
+                    </p>
                 </div>
-            </transition-group>
+            </a>
+            
+            <div v-if="isAuthorized" class="flex gap-4 pr-6 pl-2 border-l border-white/20">
+                <button @click.stop.prevent="openModalByUrl(song.url)" 
+                        class="text-[10px] text-pk-300 hover:text-pk-400 font-bold transition-colors">改</button>
+                <button @click.stop.prevent="removeSongByUrl(song.url)" 
+                        class="text-[10px] text-red-300 hover:text-red-400 font-bold transition-colors">删</button>
+            </div>
         </div>
+    </transition-group>
+</div>
     </main>
 
     <div v-if="showAuthModal" class="fixed inset-0 z-50 flex items-center justify-center p-6 bg-pk-50/10 backdrop-blur-md">
