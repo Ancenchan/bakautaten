@@ -3,110 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Utaten Minimal Library</title>
+    <title>🌸 Utaten Fuwari Library</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
+    
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'Noto Sans JP', 'sans-serif'],
-                    },
                     colors: {
-                        // 自定义粉色系，确保极简感
-                        pk: {
-                            50: '#fff1f2',
-                            100: '#ffe4e6',
-                            200: '#fecdd3',
-                            300: '#fda4af',
-                            400: '#fb7185',
-                            text: '#886666', // 柔和的棕粉色文字
-                        }
-                    }
+                        pk: { 50: '#fff1f2', 100: '#ffe4e6', 200: '#fecdd3', 300: '#fda4af', 400: '#fb7185' }
+                    },
+                    borderRadius: { 'fuwari': '2rem' }
                 }
             }
         }
     </script>
+
     <style>
+        /* 1. 全局鼠标指针 (由于浏览器限制，ani 格式可能不显示，建议转为 cur) */
+        * {
+            cursor: url('./ani1147.ani'), url('https://cdn.custom-cursor.com/db/8357/32/cute-pink-bear-pointer.png'), auto !important;
+        }
+
         [v-cloak] { display: none; }
-        /* 隐藏滚动条 */
+
+        /* 2. Fuwari 风格微动效 */
+        .fuwari-float {
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .fuwari-float:hover {
+            transform: translateY(-6px);
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* 3. 背景处理 */
+        .bg-anime {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            /* 🔴 在此更换壁纸 URL */
+            background-image: url('https://images.alphacoders.com/134/1342676.png');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* 4. 滚动条美化 */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #fda4af; border-radius: 10px; }
-        
-        /* 弹窗动画 */
-        .modal-enter-active, .modal-leave-active { transition: opacity 0.3s ease; }
-        .modal-enter-from, .modal-leave-to { opacity: 0; }
     </style>
 </head>
-<body class="font-sans text-pk-text antialiased">
+<body class="font-sans text-slate-600 antialiased overflow-x-hidden">
 
-<div class="fixed inset-0 z-[-1] bg-cover bg-center bg-no-repeat" 
-     style="background-image: url('https://www.transparenttextures.com/patterns/sakura.png'); /* 🔴 强烈建议替换为柔和调性的二次元壁纸 URL */">
-    <div class="absolute inset-0 bg-pk-50/30 backdrop-blur-[2px]"></div>
-</div>
+<div id="app" v-cloak class="min-h-screen pb-12">
+    <div class="bg-anime">
+        <div class="absolute inset-0 bg-pk-50/20 backdrop-blur-[1px]"></div>
+    </div>
 
-<div id="app" v-cloak class="min-h-screen pb-20">
-    <nav class="sticky top-0 z-10 bg-white/20 backdrop-blur-lg border-b border-white/10">
-        <div class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-            <h1 class="text-xl font-light tracking-widest text-pk-400">LIBRARY</h1>
-            <div class="flex items-center gap-3">
-                <input v-model="config.token" type="password" placeholder="Key" 
-                       class="text-xs bg-white/30 border border-white/20 rounded-full px-4 py-1.5 focus:outline-none focus:ring-1 focus:ring-pk-200 w-32 md:w-48 transition-all placeholder:text-pk-200">
-                <button @click="pushToGithub" class="bg-pk-300/80 text-white text-xs font-medium px-5 py-2 rounded-full hover:bg-pk-400 transition-all shadow-sm">
-                    SYNC
+    <nav class="sticky top-0 z-20 glass border-b border-white/20 h-20">
+        <div class="max-w-5xl mx-auto px-8 h-full flex items-center justify-between">
+            <h1 class="text-2xl font-light tracking-widest text-pk-400">Utaten.List</h1>
+            <div class="flex items-center gap-4">
+                <input v-model="config.token" type="password" placeholder="GitHub Token" 
+                       class="text-xs bg-white/20 border border-white/30 rounded-full px-5 py-2 focus:outline-none focus:ring-2 focus:ring-pk-200 w-40 transition-all placeholder:text-pk-300">
+                <button @click="pushToGithub" class="bg-pk-400 text-white text-xs font-medium px-6 py-2 rounded-full hover:bg-pk-500 transition-all shadow-lg shadow-pk-200/50 uppercase tracking-tighter">
+                    Sync
                 </button>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-5xl mx-auto px-6 mt-12">
-        <div class="flex flex-col md:flex-row gap-4 mb-10">
+    <main class="max-w-4xl mx-auto px-6 mt-16">
+        <div class="flex flex-col md:flex-row gap-6 mb-16">
             <div class="relative flex-grow">
-                <input v-model="searchText" placeholder="搜索歌曲..." 
-                       class="w-full px-5 py-3 bg-white/40 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-pk-100 transition-all text-lg placeholder:text-pk-200">
+                <input v-model="searchText" placeholder="搜索心中所属的乐章..." 
+                       class="w-full px-8 py-5 glass border-none rounded-fuwari focus:outline-none focus:ring-4 focus:ring-pk-100/50 transition-all text-lg placeholder:text-pk-200 shadow-sm">
             </div>
-            <button @click="openModal()" class="inline-flex items-center justify-center rounded-xl bg-pk-100/50 px-6 py-3 text-sm font-medium text-pk-400 hover:bg-pk-200/50 transition-colors border border-white/20">
-                + ADD
+            <button @click="openModal()" class="px-10 py-5 bg-pk-100/40 text-pk-400 font-medium rounded-fuwari hover:bg-pk-200/40 transition-all glass border-none shadow-sm">
+                + Add New
             </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div v-for="(song, index) in filteredSongs" :key="index" 
-                 class="group relative flex items-center justify-between p-5 bg-white/40 backdrop-blur-sm border border-white/20 rounded-2xl hover:bg-white/60 transition-all duration-300">
+                 class="fuwari-float group glass p-6 rounded-fuwari shadow-sm flex items-center justify-between overflow-hidden">
                 
-                <div class="flex-grow cursor-pointer" @click="window.open(song.url, '_blank')">
-                    <p class="font-medium text-[16px] text-slate-800 group-hover:text-pk-400 transition-colors">{{ song.jp }}</p>
-                    <p class="text-xs text-pk-300 mt-1 font-light tracking-wide">{{ song.cn || 'N/A' }}</p>
+                <div class="flex-grow pr-4 cursor-pointer" @click="window.open(song.url, '_blank')">
+                    <p class="font-medium text-lg text-slate-800 tracking-tight">{{ song.jp }}</p>
+                    <p class="text-xs text-pk-300 mt-2 tracking-widest uppercase">{{ song.cn || 'Instrumental' }}</p>
                 </div>
                 
-                <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button @click="openModal(index)" class="text-xs text-pk-300 hover:text-pk-400 px-2 py-1">编辑</button>
-                    <button @click="removeSong(index)" class="text-xs text-red-300 hover:text-red-400 px-2 py-1">删除</button>
+                <div class="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button @click="openModal(index)" class="text-[10px] text-pk-300 hover:text-pk-400 uppercase tracking-tighter">Edit</button>
+                    <button @click="removeSong(index)" class="text-[10px] text-red-300 hover:text-red-400 uppercase tracking-tighter">Del</button>
                 </div>
+
+                <div class="absolute bottom-0 left-0 h-[2px] w-0 bg-pk-200 group-hover:w-full transition-all duration-700"></div>
             </div>
-            <div v-if="filteredSongs.length === 0" class="col-span-full py-20 text-center bg-white/20 rounded-2xl border border-white/10">
-                <p class="text-4xl mb-4 font-light text-pk-200">EMPTY</p>
+
+            <div v-if="filteredSongs.length === 0" class="col-span-full py-32 text-center bg-white/10 rounded-fuwari glass border-dashed">
+                <p class="text-5xl font-thin text-pk-200 tracking-tighter">EOF</p>
             </div>
         </div>
     </main>
 
-    <transition name="modal">
-        <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/10 backdrop-blur-[2px]">
-            <div class="bg-white/70 backdrop-blur-lg w-full max-w-md rounded-3xl shadow-xl border border-white/30 p-8">
-                <div class="flex justify-between items-center mb-8">
-                    <h3 class="text-lg font-normal tracking-wider text-pk-400">{{ editingIndex !== null ? 'EDIT' : 'ADD' }}</h3>
-                    <button @click="closeModal" class="text-pk-200 hover:text-pk-400 text-2xl font-light">×</button>
-                </div>
-                <div class="space-y-5">
-                    <input v-model="tempSong.jp" placeholder="日语歌名" class="w-full px-4 py-3 bg-white/50 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-pk-100">
-                    <input v-model="tempSong.cn" placeholder="中文翻译 (可选)" class="w-full px-4 py-3 bg-white/50 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-pk-100">
-                    <input v-model="tempSong.url" placeholder="Utaten URL" class="w-full px-4 py-3 bg-white/50 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-pk-100">
+    <transition enter-active-class="transition duration-300 ease-out" enter-from-class="opacity-0 scale-95" enter-to-class="opacity-100 scale-100" leave-active-class="transition duration-200 ease-in" leave-from-class="opacity-100 scale-100" leave-to-class="opacity-0 scale-95">
+        <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-pk-100/20 backdrop-blur-md" @click="closeModal"></div>
+            <div class="relative bg-white/80 backdrop-blur-2xl w-full max-w-sm rounded-[2.5rem] shadow-2xl border border-white p-10">
+                <h3 class="text-lg font-light tracking-widest text-pk-400 mb-8 text-center">{{ editingIndex !== null ? 'EDIT TRACK' : 'NEW TRACK' }}</h3>
+                <div class="space-y-6">
+                    <input v-model="tempSong.jp" placeholder="日文曲名" class="w-full px-6 py-4 bg-white/50 border border-pk-50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pk-100 transition-all">
+                    <input v-model="tempSong.cn" placeholder="中文翻译" class="w-full px-6 py-4 bg-white/50 border border-pk-50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pk-100 transition-all">
+                    <input v-model="tempSong.url" placeholder="Utaten URL" class="w-full px-6 py-4 bg-white/50 border border-pk-50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pk-100 transition-all">
                     
-                    <div class="pt-6 flex gap-3">
-                        <button @click="saveSong" class="w-full py-3 bg-pk-300 text-white rounded-xl text-sm font-medium hover:bg-pk-400 shadow-sm transition-all">保存</button>
-                    </div>
+                    <button @click="saveSong" class="w-full py-4 bg-pk-400 text-white rounded-2xl font-medium shadow-lg shadow-pk-200 hover:bg-pk-500 transition-all">确认喵</button>
                 </div>
             </div>
         </div>
@@ -125,16 +144,16 @@
                 tempSong: { jp: '', cn: '', url: '' },
                 config: {
                     token: localStorage.getItem('gh_token') || '',
-                    owner: 'YOUR_USERNAME', // 🔴 必须修改：你的 GitHub 用户名
-                    repo: 'YOUR_REPO',       // 🔴 必须修改：你的仓库名
+                    owner: 'YOUR_USERNAME', // 🔴 请修改为你自己的 GitHub 用户名
+                    repo: 'YOUR_REPO_NAME', // 🔴 请修改为你自己的仓库名
                     path: 'data.json'
                 }
             }
         },
         computed: {
             filteredSongs() {
-                const search = this.searchText.toLowerCase();
-                return this.songs.filter(s => s.jp.toLowerCase().includes(search) || (s.cn && s.cn.toLowerCase().includes(search)));
+                const s = this.searchText.toLowerCase();
+                return this.songs.filter(x => x.jp.toLowerCase().includes(s) || (x.cn && x.cn.toLowerCase().includes(s)));
             }
         },
         watch: {
@@ -148,7 +167,7 @@
                 try {
                     const r = await fetch(`./data.json?t=${Date.now()}`);
                     this.songs = await r.json();
-                } catch (e) { console.warn("未找到 data.json"); }
+                } catch (e) { console.warn("未找到数据文件"); }
             },
             openModal(index = null) {
                 this.editingIndex = index;
@@ -162,11 +181,11 @@
                 this.closeModal();
             },
             removeSong(index) {
-                if(confirm('确定删除吗？')) this.songs.splice(index, 1);
+                if(confirm('要从收藏夹里删掉它吗？')) this.songs.splice(index, 1);
             },
             closeModal() { this.showModal = false; },
             async pushToGithub() {
-                if (!this.config.token || this.config.owner === 'YOUR_USERNAME') return alert('请配置 Token 和用户名/仓库喵');
+                if (!this.config.token || this.config.owner === 'YOUR_USERNAME') return alert('请先设置 Token 和用户名喵~');
                 const url = `https://api.github.com/repos/${this.config.owner}/${this.config.repo}/contents/${this.config.path}`;
                 try {
                     const res = await fetch(url, { headers: { Authorization: `token ${this.config.token}` } });
@@ -176,11 +195,11 @@
                     const update = await fetch(url, {
                         method: 'PUT',
                         headers: { Authorization: `token ${this.config.token}` },
-                        body: JSON.stringify({ message: "Update 🌸", content, sha })
+                        body: JSON.stringify({ message: "🌸 Fuwari Update", content, sha })
                     });
-                    if(update.ok) alert('同步成功！');
-                    else alert('同步失败。');
-                } catch (e) { alert('同步出错了。'); }
+                    if(update.ok) alert('同步成功了喵！✨');
+                    else alert('同步失败了，请检查 Token 权限哦。');
+                } catch (e) { alert('发生错误，请检查仓库配置。'); }
             }
         }
     }).mount('#app');
