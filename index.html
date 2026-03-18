@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utaten Playlist</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #fdfdfd;
+            --card: #ffffff;
+            --text: #4a4a4a;
+            --sub: #9b9b9b;
+            --shadow: 0 8px 30px rgba(0,0,0,0.04);
+        }
+        body {
+            background: var(--bg);
+            font-family: 'Noto Sans SC', 'Noto Sans JP', sans-serif;
+            margin: 0; padding: 50px 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 60px; }
+        h1 { font-weight: 300; color: var(--text); letter-spacing: 4px; }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 40px;
+        }
+        .card {
+            background: var(--card);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            text-decoration: none;
+            transition: all 0.4s ease;
+            overflow: hidden;
+            display: flex; flex-direction: column;
+        }
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 45px rgba(0,0,0,0.08);
+        }
+        .img-box { width: 100%; aspect-ratio: 1; overflow: hidden; background: #f0f0f0; }
+        .img-box img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .card:hover img { transform: scale(1.1); }
+        
+        .info { padding: 20px; text-align: center; }
+        .jp { display: block; font-size: 1rem; color: var(--text); margin-bottom: 5px; font-weight: 500; }
+        .cn { display: block; font-size: 0.8rem; color: var(--sub); }
+        
+        /* 加载动画 */
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body>
+
+<div id="app" class="container" v-cloak>
+    <header>
+        <h1>UTA LIST</h1>
+        <p style="color: #bbb;">{{ songs.length }} Songs Collection</p>
+    </header>
+
+    <div class="grid">
+        <a v-for="song in songs" :href="song.url" target="_blank" class="card">
+            <div class="img-box">
+                <img :src="song.img" loading="lazy">
+            </div>
+            <div class="info">
+                <span class="jp">{{ song.jp }}</span>
+                <span class="cn">{{ song.cn }}</span>
+            </div>
+        </a>
+    </div>
+</div>
+
+<script>
+    const { createApp } = Vue;
+    createApp({
+        data() { return { songs: [] } },
+        mounted() {
+            // 获取数据
+            fetch('./data.json')
+                .then(res => res.json())
+                .then(data => this.songs = data)
+                .catch(err => console.error("数据加载失败:", err));
+        }
+    }).mount('#app');
+</script>
+
+</body>
+</html>
