@@ -117,9 +117,9 @@
             
             <div v-if="isAuthorized" class="flex gap-4 pr-6 pl-2 border-l border-white/20">
                 <button @click.stop.prevent="openModalByUrl(song.url)" 
-                        class="text-[10px] text-pk-300 hover:text-pk-400 font-bold transition-colors">改</button>
+                        class="text-[10px] text-pk-300 hover:text-pk-400 font-bold transition-colors">EDIT</button>
                 <button @click.stop.prevent="removeSongByUrl(song.url)" 
-                        class="text-[10px] text-red-300 hover:text-red-400 font-bold transition-colors">删</button>
+                        class="text-[10px] text-red-300 hover:text-red-400 font-bold transition-colors">DELETE</button>
             </div>
         </div>
     </transition-group>
