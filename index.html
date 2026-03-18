@@ -95,23 +95,21 @@
         </div>
 
         <div class="space-y-3">
-            <div v-for="(song, index) in filteredSongs" :key="index" 
-                 class="group glass p-4 rounded-fuwari flex items-center justify-between hover:bg-white/50 transition-all duration-300 shadow-sm">
-                
-                <div class="flex-grow cursor-pointer" @click="window.open(song.url, '_blank')">
-                    <p class="text-sm font-medium text-slate-700 tracking-tight">{{ song.jp }}</p>
-                    <p class="text-[10px] text-pk-300 mt-1 font-light tracking-widest uppercase">{{ song.cn || 'Original' }}</p>
-                </div>
-                
-                <div v-if="isAuthorized" class="flex gap-4 ml-2">
-                    <button @click="openModal(index)" class="text-[10px] text-pk-200 hover:text-pk-400 font-bold transition-colors">改</button>
-                    <button @click="removeSong(index)" class="text-[10px] text-red-200 hover:text-red-400 font-bold transition-colors">删</button>
-                </div>
-            </div>
+            <transition-group name="list">
+                <div v-for="(song, index) in filteredSongs" :key="song.url" 
+                     class="group glass rounded-fuwari flex items-center justify-between hover:bg-white/50 transition-all duration-300 shadow-sm overflow-hidden">
             
-            <div v-if="filteredSongs.length === 0" class="py-12 text-center text-xs text-pk-200 font-light tracking-widest italic">
-                No songs found...
-            </div>
+                    <a :href="song.url" target="_blank" class="flex-grow p-4 btn-click">
+                        <p class="text-sm font-medium text-slate-700 tracking-tight">{{ song.jp }}</p>
+                        <p class="text-[10px] text-pk-300 mt-1 font-light tracking-widest uppercase">{{ song.cn || 'Original' }}</p>
+                    </a>
+            
+                    <div v-if="isAuthorized" class="flex gap-4 pr-6">
+                        <button @click.stop="openModal(index)" class="text-[10px] text-pk-200 hover:text-pk-400 font-bold transition-colors">改</button>
+                        <button @click.stop="removeSong(index)" class="text-[10px] text-red-200 hover:text-red-400 font-bold transition-colors">删</button>
+                    </div>
+                </div>
+            </transition-group>
         </div>
     </main>
 
