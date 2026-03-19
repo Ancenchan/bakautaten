@@ -1,4 +1,218 @@
-methods: {
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌸 My Utaten Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { pk: { 50: '#fff1f2', 100: '#ffe4e6', 200: '#fecdd3', 300: '#fda4af', 400: '#fb7185' } },
+                    borderRadius: { 'fuwari': '1.25rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        html, body { cursor: url('./Normal.cur'), auto !important; }
+        input, textarea { cursor: url('./Text.cur'), text !important; }
+        a, button, .btn-click { cursor: url('./Link.cur'), pointer !important; }
+
+        [v-cloak] { display: none; }
+        
+        .bg-anime {
+            position: fixed; inset: 0; z-index: -1;
+            background-image: url('https://images.alphacoders.com/134/1342676.png');
+            background-size: cover; background-position: center;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .container-mini { width: 100%; max-width: 500px; margin: 0 auto; padding: 0 1.5rem; }
+
+        @keyframes pulse-pink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .syncing { animation: pulse-pink 1.5s infinite; }
+
+        /* Vue Transition Group 动画 */
+        .list-enter-active, .list-leave-active { transition: all 0.5s ease; }
+        .list-enter-from, .list-leave-to { opacity: 0; transform: translateY(10px); }
+    </style>
+</head>
+<body class="font-sans text-slate-600 antialiased selection:bg-pk-100">
+
+<div id="app" v-cloak class="min-h-screen flex flex-col">
+    <div class="bg-anime"><div class="absolute inset-0 bg-pk-50/10 backdrop-blur-[1px]"></div></div>
+
+    <nav class="fixed top-0 left-0 right-0 z-30 p-4 flex justify-between items-center pointer-events-none">
+        <div class="pointer-events-auto">
+            <button @click="triggerAdmin" class="w-10 h-10 glass rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-sm">
+                <img src="https://api.iconify.design/fluent-emoji-flat:cat-face.svg" class="w-6 h-6"> </button>
+        </div>
+        <div v-if="isSyncing" class="px-3 py-1 glass rounded-full text-[10px] text-pk-400 font-bold syncing pointer-events-auto">
+            SAVING...
+        </div>
+    </nav>
+
+    <header class="mt-20 mb-6 text-center container-mini">
+        <div class="inline-block relative mb-4">
+            <img src="./D7082F15DFD1B56916284F07CFC7AE7F.png" 
+                 class="w-16 h-16 rounded-full border-2 border-white/80 shadow-sm glass object-cover mx-auto">
+        </div>
+        <h2 class="text-lg font-light tracking-[0.3em] text-pk-400">UTATEN.LOG</h2>
+        <p class="text-[10px] text-pk-300 mt-2 font-light tracking-wider opacity-80">「 心の中に響くメロディー 」</p>
+    </header>
+
+    <main class="container-mini pb-20">
+        <div class="flex items-center gap-2 mb-8">
+            <div class="relative flex-grow">
+                <input v-model="searchText" placeholder="搜索心中所属的乐章..." 
+                       class="w-full px-5 py-2.5 glass rounded-full focus:outline-none focus:ring-1 focus:ring-pk-100 text-sm placeholder:text-pk-200 transition-all shadow-sm">
+                
+                <button @click="shuffleSongs" title="随机排列" 
+                        class="absolute right-4 top-1/2 -translate-y-1/2 group flex items-center justify-center">
+                    <span class="text-lg opacity-60 group-hover:opacity-100 group-hover:rotate-[360deg] transition-all duration-700 ease-in-out inline-block">
+                        🔄
+                    </span>
+                </button>
+            </div>
+            
+            <button v-if="isAuthorized" @click="openModal()" 
+                    class="w-10 h-10 flex items-center justify-center bg-pk-300 text-white rounded-full hover:bg-pk-400 transition-all shadow-md shadow-pk-200/50 text-xl font-light">
+                +
+            </button>
+        </div>
+
+        <div class="space-y-3">
+            <transition-group name="list" tag="div" class="space-y-3">
+                <div v-for="song in filteredSongs" :key="song.url" 
+                     class="group glass rounded-fuwari flex items-center justify-between hover:bg-white/50 transition-all duration-300 shadow-sm overflow-hidden border border-white/20">
+                    
+                    <a :href="song.url" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       class="flex-grow p-4 btn-click no-underline">
+                        <div class="flex flex-col">
+                            <p class="text-sm font-medium text-slate-700 tracking-tight leading-tight">
+                                {{ song.jp }}
+                            </p>
+                            <p class="text-[10px] text-pk-300 mt-1.5 font-light tracking-widest uppercase opacity-80">
+                                {{ song.cn || 'Original' }}
+                            </p>
+                        </div>
+                    </a>
+                    
+                    <div v-if="isAuthorized" class="flex gap-4 pr-6 pl-2 border-l border-white/20">
+                        <button @click.stop.prevent="openModalByUrl(song.url)" 
+                                class="text-[10px] text-pk-300 hover:text-pk-400 font-bold transition-colors">EDIT</button>
+                        <button @click.stop.prevent="removeSongByUrl(song.url)" 
+                                class="text-[10px] text-red-300 hover:text-red-400 font-bold transition-colors">DELETE</button>
+                    </div>
+                </div>
+            </transition-group>
+        </div>
+    </main>
+
+    <div v-if="showAuthModal" class="fixed inset-0 z-50 flex items-center justify-center p-6 bg-pk-50/10 backdrop-blur-md">
+        <div class="bg-white/90 glass w-full max-w-[280px] rounded-[2rem] p-8 shadow-2xl animate-in fade-in zoom-in duration-300">
+            <h3 class="text-xs font-bold tracking-[0.2em] text-pk-300 mb-6 text-center uppercase">管理员验证</h3>
+            <input v-model="inputToken" type="password" placeholder="Input Token..." 
+                   class="w-full px-4 py-3 bg-white/50 border border-pk-50 rounded-2xl text-xs outline-none focus:ring-2 focus:ring-pk-100 mb-4">
+            <div class="flex gap-2">
+                <button @click="verifyToken" class="flex-1 py-3 bg-pk-300 text-white rounded-xl text-xs font-bold shadow-md shadow-pk-100 hover:bg-pk-400 transition-all">确认</button>
+                <button @click="showAuthModal = false" class="px-4 py-3 bg-slate-100 text-slate-400 rounded-xl text-xs font-bold">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <transition name="modal">
+        <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-6">
+            <div class="absolute inset-0 bg-pk-50/20 backdrop-blur-sm" @click="closeModal"></div>
+            
+            <div class="relative bg-white/90 glass w-full max-w-[300px] rounded-[2.5rem] p-8 shadow-2xl animate-in fade-in zoom-in duration-300">
+                <button @click="closeModal" class="absolute top-4 right-6 text-pk-200 hover:text-pk-400 text-xl font-light transition-colors">
+                    ✕
+                </button>
+
+                <div class="space-y-4 pt-2">
+                    <h3 class="text-xs font-bold tracking-[0.2em] text-pk-300 mb-2 text-center uppercase">编辑曲目</h3>
+                    
+                    <input v-model="tempSong.jp" placeholder="日文曲名" 
+                           class="w-full px-4 py-3 bg-white/50 border border-pk-50 rounded-2xl text-xs outline-none focus:ring-2 focus:ring-pk-100">
+                    
+                    <input v-model="tempSong.cn" placeholder="中文翻译" 
+                           class="w-full px-4 py-3 bg-white/50 border border-pk-50 rounded-2xl text-xs outline-none focus:ring-2 focus:ring-pk-100">
+                    
+                    <input v-model="tempSong.url" placeholder="Utaten URL" 
+                           class="w-full px-4 py-3 bg-white/50 border border-pk-50 rounded-2xl text-xs outline-none focus:ring-2 focus:ring-pk-100">
+                    
+                    <div class="flex gap-2 pt-2">
+                        <button @click="saveSong" class="flex-1 py-3 bg-pk-300 text-white rounded-xl text-xs font-bold shadow-md hover:bg-pk-400 transition-all">
+                            保存并同步
+                        </button>
+                        <button @click="closeModal" class="px-4 py-3 bg-slate-100 text-slate-400 rounded-xl text-xs font-bold hover:bg-slate-200 transition-all">
+                            取消
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </transition>
+
+    <footer class="mt-auto py-6 text-center text-[8px] text-pk-200 tracking-[0.3em] uppercase opacity-50">
+        POWERED BY FUWARI • {{ isAuthorized ? 'ADMIN MODE' : 'VISITOR' }}
+    </footer>
+</div>
+
+<script>
+    const { createApp } = Vue;
+    createApp({
+        data() {
+            return {
+                isAuthorized: false,
+                isSyncing: false,
+                showAuthModal: false,
+                showModal: false,
+                inputToken: '',
+                searchText: '',
+                songs: [],
+                editingIndex: null,
+                tempSong: { jp: '', cn: '', url: '' },
+                config: {
+                    token: localStorage.getItem('gh_token') || '',
+                    owner: 'Ancenchan', 
+                    repo: 'bakautaten', 
+                    path: 'data.json'
+                }
+            }
+        },
+        computed: {
+            filteredSongs() {
+                const s = this.searchText.toLowerCase();
+                return this.songs.filter(x => 
+                    x.jp.toLowerCase().includes(s) || 
+                    (x.cn && x.cn.toLowerCase().includes(s))
+                );
+            }
+        },
+        mounted() {
+            this.fetchData();
+            if (this.config.token) this.isAuthorized = true;
+        },
+        methods: {
             async fetchData() {
                 try {
                     const r = await fetch(`./data.json?t=${Date.now()}`);
@@ -11,15 +225,19 @@ methods: {
                     [this.songs[i], this.songs[j]] = [this.songs[j], this.songs[i]];
                 }
             },
-            // --- 新增：通过 URL 找到对应的索引并打开编辑窗 ---
+            // --- 修复点击 EDIT 无反应 ---
             openModalByUrl(url) {
                 const index = this.songs.findIndex(s => s.url === url);
-                if (index !== -1) this.openModal(index);
+                if (index !== -1) {
+                    this.openModal(index);
+                }
             },
-            // --- 新增：通过 URL 找到对应的索引并执行删除 ---
+            // --- 修复点击 DELETE 无反应 ---
             removeSongByUrl(url) {
                 const index = this.songs.findIndex(s => s.url === url);
-                if (index !== -1) this.removeSong(index);
+                if (index !== -1) {
+                    this.removeSong(index);
+                }
             },
             triggerAdmin() {
                 if (this.isAuthorized) {
@@ -50,8 +268,11 @@ methods: {
             },
             async saveSong() {
                 if (!this.tempSong.jp || !this.tempSong.url) return;
-                if (this.editingIndex !== null) this.songs[this.editingIndex] = { ...this.tempSong };
-                else this.songs.unshift({ ...this.tempSong });
+                if (this.editingIndex !== null) {
+                    this.songs[this.editingIndex] = { ...this.tempSong };
+                } else {
+                    this.songs.unshift({ ...this.tempSong });
+                }
                 this.showModal = false;
                 await this.autoSync();
             },
@@ -66,15 +287,18 @@ methods: {
                 if (!this.config.token) return;
                 this.isSyncing = true;
                 const url = `https://api.github.com/repos/${this.config.owner}/${this.config.repo}/contents/${this.config.path}`;
+                
                 try {
                     const res = await fetch(url, { headers: { Authorization: `token ${this.config.token}` } });
                     const fileData = await res.json();
+                    
                     const content = btoa(unescape(encodeURIComponent(JSON.stringify(this.songs, null, 2))));
                     const update = await fetch(url, {
                         method: 'PUT',
                         headers: { Authorization: `token ${this.config.token}` },
                         body: JSON.stringify({ message: "🌸 Auto Sync Update", content, sha: fileData.sha })
                     });
+                    
                     if(!update.ok) throw new Error();
                 } catch (e) {
                     alert('自动同步失败，请检查 Token 权限或网络。');
@@ -83,3 +307,7 @@ methods: {
                 }
             }
         }
+    }).mount('#app');
+</script>
+</body>
+</html>
