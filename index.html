@@ -98,14 +98,12 @@
 
         <div class="space-y-3">
             <transition-group name="list" tag="div" class="space-y-3">
-                <div v-for="song in filteredSongs" :key="song.url" 
+                <div v-for="song in filteredSongs" :key="song.id"
                      class="group glass rounded-fuwari flex items-center justify-between hover:bg-white/50 transition-all duration-300 shadow-sm overflow-hidden border border-white/20">
-                    
-                    <a :href="song.url" 
-                       target="_blank" 
-                       rel="noopener noreferrer"
-                       class="flex-grow p-4 btn-click no-underline">
-                        <div class="flex flex-col">
+
+                    <div @click="openSong(song)"
+                         class="flex-grow p-4 btn-click flex items-center justify-between gap-2">
+                        <div class="flex flex-col min-w-0">
                             <p class="text-sm font-medium text-slate-700 tracking-tight leading-tight">
                                 {{ song.jp }}
                             </p>
@@ -113,12 +111,15 @@
                                 {{ song.cn || 'Original' }}
                             </p>
                         </div>
-                    </a>
-                    
+                        <span v-if="validLinks(song).length > 1" class="shrink-0 text-[9px] text-pk-300/80 font-bold tracking-widest">
+                            🔗 {{ validLinks(song).length }}
+                        </span>
+                    </div>
+
                     <div v-if="isAuthorized" class="flex gap-4 pr-6 pl-2 border-l border-white/20">
-                        <button @click.stop.prevent="openModalByUrl(song.url)" 
+                        <button @click.stop.prevent="openModalById(song.id)"
                                 class="text-[10px] text-pk-300 hover:text-pk-400 font-bold transition-colors">EDIT</button>
-                        <button @click.stop.prevent="removeSongByUrl(song.url)" 
+                        <button @click.stop.prevent="removeSongById(song.id)"
                                 class="text-[10px] text-red-300 hover:text-red-400 font-bold transition-colors">DELETE</button>
                     </div>
                 </div>
@@ -139,26 +140,86 @@
     </div>
 
     <transition name="modal">
+        <div v-if="showLinkPicker && pickerSong" class="fixed inset-0 z-50 flex items-center justify-center p-6">
+            <div class="absolute inset-0 bg-pk-50/20 backdrop-blur-sm" @click="closeLinkPicker"></div>
+
+            <div class="relative bg-white/90 glass w-full max-w-[320px] max-h-[85vh] overflow-y-auto rounded-[2.5rem] p-8 shadow-2xl animate-in fade-in zoom-in duration-300">
+                <button @click="closeLinkPicker" class="absolute top-4 right-6 text-pk-200 hover:text-pk-400 text-xl font-light transition-colors z-10">
+                    ✕
+                </button>
+
+                <h3 class="text-xs font-bold tracking-[0.2em] text-pk-300 mb-2 text-center uppercase pt-2">选择链接</h3>
+                <p class="text-center text-sm text-slate-700 font-medium leading-tight">{{ pickerSong.jp }}</p>
+                <p class="text-center text-[10px] text-pk-300 mt-1 tracking-widest mb-5">{{ pickerSong.cn || 'Original' }}</p>
+
+                <div class="space-y-2">
+                    <a v-for="(link, i) in validLinks(pickerSong)" :key="i"
+                       :href="link.url" target="_blank" rel="noopener noreferrer"
+                       @click="closeLinkPicker"
+                       class="flex items-center gap-3 bg-white/50 hover:bg-white/80 border border-pk-100/70 rounded-2xl p-3 btn-click no-underline transition-all">
+                        <span class="text-xl shrink-0">{{ platformIcon(link.platform) }}</span>
+                        <span class="flex flex-col min-w-0">
+                            <span class="text-xs font-bold text-slate-700 truncate">{{ link.name || platformDefaultName(link.platform) }}</span>
+                            <span class="text-[9px] text-pk-300 tracking-wider truncate">{{ platformLabel(link.platform) }} · {{ linkHost(link.url) }}</span>
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </transition>
+
+    <transition name="modal">
         <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-6">
             <div class="absolute inset-0 bg-pk-50/20 backdrop-blur-sm" @click="closeModal"></div>
-            
-            <div class="relative bg-white/90 glass w-full max-w-[300px] rounded-[2.5rem] p-8 shadow-2xl animate-in fade-in zoom-in duration-300">
-                <button @click="closeModal" class="absolute top-4 right-6 text-pk-200 hover:text-pk-400 text-xl font-light transition-colors">
+
+            <div class="relative bg-white/90 glass w-full max-w-[300px] max-h-[90vh] overflow-y-auto rounded-[2.5rem] p-8 shadow-2xl animate-in fade-in zoom-in duration-300">
+                <button @click="closeModal" class="absolute top-4 right-6 text-pk-200 hover:text-pk-400 text-xl font-light transition-colors z-10">
                     ✕
                 </button>
 
                 <div class="space-y-4 pt-2">
                     <h3 class="text-xs font-bold tracking-[0.2em] text-pk-300 mb-2 text-center uppercase">编辑曲目</h3>
-                    
-                    <input v-model="tempSong.jp" placeholder="日文曲名" 
+
+                    <input v-model="tempSong.jp" placeholder="日文曲名"
                            class="w-full px-4 py-3 bg-white/50 border border-pk-50 rounded-2xl text-xs outline-none focus:ring-2 focus:ring-pk-100">
-                    
-                    <input v-model="tempSong.cn" placeholder="中文翻译" 
+
+                    <input v-model="tempSong.cn" placeholder="中文翻译"
                            class="w-full px-4 py-3 bg-white/50 border border-pk-50 rounded-2xl text-xs outline-none focus:ring-2 focus:ring-pk-100">
-                    
-                    <input v-model="tempSong.url" placeholder="Utaten URL" 
-                           class="w-full px-4 py-3 bg-white/50 border border-pk-50 rounded-2xl text-xs outline-none focus:ring-2 focus:ring-pk-100">
-                    
+
+                    <div class="space-y-2">
+                        <p class="text-[10px] font-bold tracking-[0.2em] text-pk-300 uppercase">跳转链接（至少一条）</p>
+
+                        <div v-for="(link, i) in tempSong.links" :key="i"
+                             class="bg-pk-50/60 border border-pk-100/70 rounded-2xl p-3 space-y-2">
+                            <div class="flex gap-2">
+                                <select v-model="link.platform"
+                                        class="w-[76px] shrink-0 px-2 py-2.5 bg-white/70 border border-pk-50 rounded-xl text-xs outline-none focus:ring-2 focus:ring-pk-100">
+                                    <option value="utaten">UtaTen</option>
+                                    <option value="bilibili">B 站</option>
+                                </select>
+                                <input v-model="link.name" :placeholder="platformDefaultName(link.platform)"
+                                       class="flex-1 min-w-0 px-3 py-2.5 bg-white/50 border border-pk-50 rounded-xl text-xs outline-none focus:ring-2 focus:ring-pk-100">
+                            </div>
+                            <input v-model="link.url" placeholder="https://..."
+                                   class="w-full px-3 py-2.5 bg-white/50 border border-pk-50 rounded-xl text-xs outline-none focus:ring-2 focus:ring-pk-100">
+                            <div class="flex items-center justify-between">
+                                <div class="flex gap-1">
+                                    <button type="button" @click="moveLink(i, -1)" :disabled="i === 0"
+                                            class="w-7 h-7 flex items-center justify-center bg-white/70 border border-pk-50 rounded-lg text-[10px] text-pk-300 font-bold disabled:opacity-30 hover:bg-pk-100 transition-all">↑</button>
+                                    <button type="button" @click="moveLink(i, 1)" :disabled="i === tempSong.links.length - 1"
+                                            class="w-7 h-7 flex items-center justify-center bg-white/70 border border-pk-50 rounded-lg text-[10px] text-pk-300 font-bold disabled:opacity-30 hover:bg-pk-100 transition-all">↓</button>
+                                </div>
+                                <button type="button" @click="removeLink(i)"
+                                        class="text-[10px] text-red-300 hover:text-red-400 font-bold transition-colors">删除</button>
+                            </div>
+                        </div>
+
+                        <button type="button" @click="addLink"
+                                class="w-full py-2.5 border border-dashed border-pk-200 text-pk-300 hover:bg-pk-50 rounded-2xl text-[11px] font-bold tracking-widest transition-all">
+                            ＋ 添加链接
+                        </button>
+                    </div>
+
                     <div class="flex gap-2 pt-2">
                         <button @click="saveSong" class="flex-1 py-3 bg-pk-300 text-white rounded-xl text-xs font-bold shadow-md hover:bg-pk-400 transition-all">
                             保存并同步
@@ -186,11 +247,13 @@
                 isSyncing: false,
                 showAuthModal: false,
                 showModal: false,
+                showLinkPicker: false,
+                pickerSong: null,
                 inputToken: '',
                 searchText: '',
                 songs: [],
                 editingIndex: null,
-                tempSong: { jp: '', cn: '', url: '' },
+                tempSong: { id: null, jp: '', cn: '', links: [] },
                 config: {
                     token: localStorage.getItem('gh_token') || '',
                     owner: 'Ancenchan', 
@@ -216,8 +279,66 @@
             async fetchData() {
                 try {
                     const r = await fetch(`./data.json?t=${Date.now()}`);
-                    this.songs = await r.json();
+                    const raw = await r.json();
+                    // 兼容旧版 { jp, cn, url } 数据，统一归一化为 { id, jp, cn, links }
+                    const seen = new Set();
+                    this.songs = (Array.isArray(raw) ? raw : []).map(s => {
+                        const n = this.normalizeSong(s);
+                        // 极小概率的内容完全重复：追加后缀保证 key 唯一，不丢数据
+                        let id = n.id, k = 2;
+                        while (seen.has(id)) id = n.id + '_' + (k++);
+                        seen.add(id);
+                        return { ...n, id };
+                    });
                 } catch (e) { console.error("Data load failed"); }
+            },
+            // --- 多链接：归一化 / id / 链接工具 ---
+            genId(song) {
+                const str = [song.jp || '', song.cn || '', song.url || '', JSON.stringify(song.links || [])].join('|');
+                let h = 5381;
+                for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0;
+                return 's_' + h.toString(36);
+            },
+            normalizeSong(raw) {
+                raw = raw || {};
+                let links = [];
+                if (Array.isArray(raw.links)) {
+                    links = raw.links.map(l => ({
+                        platform: l && l.platform === 'bilibili' ? 'bilibili' : 'utaten',
+                        name: String((l && l.name) || ''),
+                        url: String((l && l.url) || '').trim()
+                    })).filter(l => l.url);
+                } else if (raw.url) {
+                    // 旧数据：单个 url 视为 UtaTen 链接
+                    links = [{ platform: 'utaten', name: '', url: String(raw.url).trim() }];
+                }
+                return {
+                    id: raw.id || this.genId(raw),
+                    jp: String(raw.jp || ''),
+                    cn: String(raw.cn || ''),
+                    links
+                };
+            },
+            validLinks(song) {
+                return (song && song.links || []).filter(l => l.url && l.url.trim());
+            },
+            platformLabel(p) { return p === 'bilibili' ? 'Bilibili' : 'UtaTen'; },
+            platformDefaultName(p) { return p === 'bilibili' ? 'Bilibili 视频' : 'UtaTen 歌词'; },
+            platformIcon(p) { return p === 'bilibili' ? '📺' : '🎼'; },
+            linkHost(u) {
+                try { return new URL(u).host.replace(/^www\./, ''); }
+                catch (e) { return '外部链接'; }
+            },
+            openSong(song) {
+                const links = this.validLinks(song);
+                if (!links.length) return;
+                // 无论几条链接都先弹出选择窗口
+                this.pickerSong = song;
+                this.showLinkPicker = true;
+            },
+            closeLinkPicker() {
+                this.showLinkPicker = false;
+                this.pickerSong = null;
             },
             shuffleSongs() {
                 for (let i = this.songs.length - 1; i > 0; i--) {
@@ -225,19 +346,27 @@
                     [this.songs[i], this.songs[j]] = [this.songs[j], this.songs[i]];
                 }
             },
-            // --- 修复点击 EDIT 无反应 ---
-            openModalByUrl(url) {
-                const index = this.songs.findIndex(s => s.url === url);
-                if (index !== -1) {
-                    this.openModal(index);
-                }
+            // --- 通过稳定 id 定位歌曲进行编辑/删除 ---
+            openModalById(id) {
+                const index = this.songs.findIndex(s => s.id === id);
+                if (index !== -1) this.openModal(index);
             },
-            // --- 修复点击 DELETE 无反应 ---
-            removeSongByUrl(url) {
-                const index = this.songs.findIndex(s => s.url === url);
-                if (index !== -1) {
-                    this.removeSong(index);
-                }
+            removeSongById(id) {
+                const index = this.songs.findIndex(s => s.id === id);
+                if (index !== -1) this.removeSong(index);
+            },
+            // --- 编辑弹窗内的动态链接管理 ---
+            addLink() {
+                this.tempSong.links.push({ platform: 'bilibili', name: '', url: '' });
+            },
+            removeLink(i) {
+                this.tempSong.links.splice(i, 1);
+            },
+            moveLink(i, dir) {
+                const j = i + dir;
+                if (j < 0 || j >= this.tempSong.links.length) return;
+                const arr = this.tempSong.links;
+                [arr[i], arr[j]] = [arr[j], arr[i]];
             },
             triggerAdmin() {
                 if (this.isAuthorized) {
@@ -263,15 +392,48 @@
             },
             openModal(index = null) {
                 this.editingIndex = index;
-                this.tempSong = index !== null ? { ...this.songs[index] } : { jp: '', cn: '', url: '' };
+                if (index !== null) {
+                    const s = this.songs[index];
+                    this.tempSong = {
+                        id: s.id,
+                        jp: s.jp,
+                        cn: s.cn,
+                        links: s.links.map(l => ({ ...l }))
+                    };
+                } else {
+                    this.tempSong = { id: null, jp: '', cn: '', links: [{ platform: 'utaten', name: '', url: '' }] };
+                }
                 this.showModal = true;
             },
             async saveSong() {
-                if (!this.tempSong.jp || !this.tempSong.url) return;
+                const jp = this.tempSong.jp.trim();
+                const cn = this.tempSong.cn.trim();
+                if (!jp) { alert('请填写日文曲名哦~'); return; }
+                // 清理链接：去空白、丢弃无 URL 的、名称留空时用默认名
+                const links = this.tempSong.links
+                    .map(l => ({
+                        platform: l.platform === 'bilibili' ? 'bilibili' : 'utaten',
+                        name: (l.name || '').trim(),
+                        url: (l.url || '').trim()
+                    }))
+                    .filter(l => l.url);
+                if (!links.length) { alert('至少需要一条有效链接哦~'); return; }
+                links.forEach(l => { if (!l.name) l.name = this.platformDefaultName(l.platform); });
+
+                let newId = this.genId({ jp, cn, links });
+                if (!this.tempSong.id) {
+                    const used = new Set(this.songs.map(s => s.id));
+                    const base = newId; let k = 2;
+                    while (used.has(newId)) newId = base + '_' + (k++);
+                }
+                const saved = {
+                    id: this.tempSong.id || newId,
+                    jp, cn, links
+                };
                 if (this.editingIndex !== null) {
-                    this.songs[this.editingIndex] = { ...this.tempSong };
+                    this.songs[this.editingIndex] = saved;
                 } else {
-                    this.songs.unshift({ ...this.tempSong });
+                    this.songs.unshift(saved);
                 }
                 this.showModal = false;
                 await this.autoSync();
